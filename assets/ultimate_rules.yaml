@@ -1,0 +1,536 @@
+version: 2.0
+meta:
+  created: 2025-09-24
+  description: "Ultimate Rules System - Single Source of Truth"
+  ui_editable: true
+  language: [de, en]
+
+# Schema und Sequence Config (aus altem System übernommen)
+naming:
+  schema: "{doc_date}_{company_norm}_{kategorie}_{unterkategorie}_{inhalt}_{seq}.pdf"
+  seq:
+    start: 1
+    width: 6
+  defaults:
+    kategorie: "sonstiges"
+    unterkategorie: "allgemein"
+    inhalt: "dokument"
+    company: "unbekannt"
+
+# Company Aliases mit Account-basierter Bucket-Zuordnung
+companies:
+  # Johnny's echte Banken
+  c24_bank:
+    aliases: ["c24 bank", "c24", "check24 bank"]
+    bucket: "johnny"  # Default bucket
+    default_category: "banking"
+    accounts:
+      - iban: "DE46500240243448797301"
+        name: "Giro Ge Fam RL"
+        bucket: "fam"
+        alias: "c24_familie"
+      - iban: "DE12500240243448797331"
+        name: "Ge Fixkosten"
+        bucket: "fam"
+        alias: "c24_fixkosten"
+      - iban: "DE55500240243448797333"
+        name: "Hauskonto"
+        bucket: "haus"
+        alias: "c24_haus"
+      - iban: "DE29500240248338024601"
+        name: "Privatkonto Johnny"
+        bucket: "johnny"
+        alias: "c24_privat"
+
+  consorsbank:
+    aliases: ["consorsbank", "consors bank", "consors", "bnp paribas consors"]
+    bucket: "johnny"  # Default bucket
+    default_category: "banking"
+    accounts:
+      - depot_nr: "878173949"
+        verrechnungskonto: "DE68760300800870173947"
+        name: "Depot Johnny"
+        bucket: "johnny"
+        alias: "consors_depot_johnny"
+      - depot_nr: "318288514"
+        verrechnungskonto: "DE13760300800310288512"
+        name: "Depot Enie ETF"
+        bucket: "fam"
+        alias: "consors_depot_enie"
+
+  trade_republic:
+    aliases: ["trade republic", "trade republic bank", "tr", "trade republic bank gmbh"]
+    bucket: "johnny"
+    default_category: "banking"
+    accounts:
+      - iban: "DE80 1001 2345 0980 0825 01"
+        name: "Johannes Stefan Reinhardt"
+        bic: "TRBKDEBBXXX"
+        bucket: "johnny"
+        alias: "trade_republic"
+
+  fnz_bank:
+    aliases: ["fnz bank", "ebase", "fnz", "european bank for financial services"]
+    bucket: "johnny"
+    default_category: "banking"
+    accounts:
+      - depot_nr: "99135418862"
+        name: "Johannes Reinhardt VL-Sparen"
+        bucket: "johnny"
+        alias: "ebase_vl_sparen"
+
+  paypal:
+    aliases: ["paypal", "paypal (europe)", "paypal pte ltd", "paypal europe"]
+    bucket: "johnny"
+    default_category: "banking"
+    accounts:
+      - email: "mail@johnnyr.de"
+        name: "PayPal Johnny"
+        bucket: "johnny"
+        alias: "paypal_johnny"
+
+  dkb_bank:
+    aliases: ["dkb", "deutsche kreditbank", "dkb ag"]
+    bucket: "johnny"
+    default_category: "banking"
+    accounts:
+      - iban: "DE43120300001053451660"
+        name: "Alt DKB 1"
+        bucket: "johnny"
+        alias: "dkb_alt_1"
+      - iban: "DE18120300001051984985"
+        name: "Alt DKB 2"
+        bucket: "johnny"
+        alias: "dkb_alt_2"
+
+  # Legacy/Test-Banken (können später entfernt werden)
+  sparkasse:
+    aliases: ["sparkasse", "stadtsparkasse", "kreissparkasse"]
+    bucket: "johnny"
+    default_category: "banking"
+  deutsche_bank:
+    aliases: ["deutsche bank", "db", "deutsche bank ag"]
+    bucket: "johnny"
+    default_category: "banking"
+
+  # Versicherungen
+  techniker_krankenkasse:
+    aliases: ["techniker krankenkasse", "tk", "die techniker", "techniker"]
+    bucket: "johnny"
+    default_category: "versicherung"
+  basler:
+    aliases: ["basler", "baloise", "baloise basler versicherung", "basler versicherung"]
+    bucket: "johnny"
+    default_category: "versicherung"
+  barmer:
+    aliases: ["barmer", "barmer gek", "barmer ersatzkasse"]
+    bucket: "johnny"
+    default_category: "versicherung"
+
+  # Energie & Haus
+  rheinenergie:
+    aliases: ["rheinenergie", "rhein energie", "rheinenergie ag"]
+    bucket: "haus"
+    default_category: "energie"
+
+  tibber:
+    aliases: ["tibber", "tibber deutschland", "tibber deutschland gmbh", "tibber gmbh"]
+    bucket: "haus"
+    default_category: "energie"
+    accounts:
+      - iban: "DE73 5121 0600 4222 4580 12"
+        name: "Tibber Deutschland GmbH"
+        bucket: "haus"
+        alias: "tibber"
+
+  # Familie & Bildung
+  don_bosco_schule:
+    aliases: ["don bosco", "don-bosco-schule", "schule don bosco", "st. don bosco"]
+    bucket: "fam"
+    default_category: "bildung"
+
+# Bucket Keywords (aus altem System übernommen)
+buckets:
+  johnny: ["bank", "versicherung", "kranken", "finanzen", "steuer", "rente"]
+  haus: ["energie", "strom", "gas", "schornsteinfeger", "wasser", "müll", "grundsteuer", "handwerker", "renovierung"]
+  fam: ["schule", "kita", "tagesmutter", "bildung", "ausbildung", "kinder", "gesundheit"]
+  auto: ["auto", "fahrzeug", "kfz", "versicherung", "tüv", "werkstatt"]
+  arbeit: ["arbeit", "job", "gehalt", "lohn", "pension", "rente"]
+
+# Hierarchische Kategorien (aus deinem neuen System)
+kategorien:
+  haus:
+    bau:
+      doc_types:
+        rechnung:
+          patterns: ["rechnung", "rg.", "rechnungsstellung", "honorar", "werklohn", "abrechnung"]
+          priority: 8
+          steuer_relevant: true
+        angebot:
+          patterns: ["angebot", "offerte", "kostenvoranschlag", "preisanfrage", "kostenschätzung"]
+          priority: 8
+          steuer_relevant: false
+        baubeschreibung:
+          patterns: ["baubeschreibung", "leistungsverzeichnis", "lv", "spezifikation", "bauleistung"]
+          priority: 7
+          steuer_relevant: false
+        berechnung:
+          patterns: ["statik", "wärmebedarfsberechnung", "u-wert", "energetische berechnung", "berechnung"]
+          priority: 6
+          steuer_relevant: false
+    renovierung:
+      doc_types:
+        rechnung:
+          patterns: ["rechnung", "rg.", "bill", "arbeitsnachweis", "leistungen"]
+          priority: 10
+          steuer_relevant: true
+        protokoll:
+          patterns: ["abnahmeprotokoll", "protokoll", "mängelliste", "prüfung"]
+          priority: 7
+          steuer_relevant: false
+        nachtrag:
+          patterns: ["nachtrag", "zusatzangebot", "mehrkosten"]
+          priority: 6
+          steuer_relevant: true
+    dach:
+      doc_types:
+        rechnung:
+          patterns: ["dach", "dachdecker", "spengler", "deckung", "rechnung", "rg."]
+          priority: 10
+          steuer_relevant: true
+        angebot:
+          patterns: ["angebot", "offerte", "kostenvoranschlag", "dach"]
+          priority: 8
+          steuer_relevant: false
+        berechnung:
+          patterns: ["statik", "sparren", "lastberechnung"]
+          priority: 6
+          steuer_relevant: false
+    fenster:
+      doc_types:
+        rechnung:
+          patterns: ["fenster", "rahmen", "glas", "rechnung"]
+          priority: 10
+          steuer_relevant: true
+        angebot:
+          patterns: ["fenster", "angebot", "offerte", "kostenvoranschlag"]
+          priority: 8
+          steuer_relevant: false
+    solar:
+      doc_types:
+        solarthermie:
+          patterns: ["solarthermie", "wärmekollektor", "speicher", "solaranlage (wärme)"]
+          priority: 9
+          steuer_relevant: true
+        pv_rechnung:
+          patterns: ["photovoltaik", "pv", "wechselrichter", "modul", "string", "rechnung"]
+          priority: 10
+          steuer_relevant: true
+        pv_angebot:
+          patterns: ["photovoltaik", "pv", "angebot", "offerte", "kostenvoranschlag"]
+          priority: 8
+          steuer_relevant: false
+    energie:
+      doc_types:
+        strom_rechnung:
+          patterns: ["stromrechnung", "electricity bill", "jahresabrechnung strom", "abschlagsplan strom", "rechnung strom"]
+          priority: 10
+          steuer_relevant: true
+        gas_rechnung:
+          patterns: ["gasrechnung", "gas bill", "jahresabrechnung gas", "abschlagsplan gas", "rechnung gas"]
+          priority: 10
+          steuer_relevant: true
+        wasser_rechnung:
+          patterns: ["wasserrechnung", "water bill", "jahresabrechnung wasser", "rechnung wasser"]
+          priority: 10
+          steuer_relevant: true
+        heizkosten_abrechnung:
+          patterns: ["heizkostenabrechnung", "hk abrechnung", "verbrauchserfassung heizkosten"]
+          priority: 9
+          steuer_relevant: true
+        vertrag:
+          patterns: ["liefervertrag", "energieliefervertrag", "tarifbestätigung", "vertrag"]
+          priority: 7
+          steuer_relevant: false
+    kommunal:
+      doc_types:
+        bescheid:
+          patterns: ["grundbesitzabgaben", "müllgebühren", "abwasser", "straßenreinigung", "bescheid", "gebührenbescheid"]
+          priority: 9
+          steuer_relevant: true
+        steuer:
+          patterns: ["grundsteuer", "steuerbescheid grundsteuer", "festsetzung", "grundsteuerbescheid"]
+          priority: 10
+          steuer_relevant: true
+    service:
+      doc_types:
+        schornsteinfeger_bescheinigung:
+          patterns: ["kehrtermin", "messprotokoll", "bescheinigung", "feuerstättenschau", "schornsteinfeger"]
+          priority: 8
+          steuer_relevant: false
+        wartung_rechnung:
+          patterns: ["wartung", "inspektion", "service", "rechnung", "kostenaufstellung"]
+          priority: 9
+          steuer_relevant: true
+    vermietung:
+      doc_types:
+        mietvertrag:
+          patterns: ["mietvertrag", "tenancy agreement", "anlage zum mietvertrag"]
+          priority: 9
+          steuer_relevant: true
+        ubergabeprotokoll:
+          patterns: ["wohnungsübergabe", "übergabeprotokoll", "mängelprotokoll"]
+          priority: 7
+          steuer_relevant: false
+        energieausweis:
+          patterns: ["energieausweis", "bedarfsorientiert", "verbrauchsorientiert"]
+          priority: 7
+          steuer_relevant: false
+    versicherung:
+      doc_types:
+        wohngebaeude_police:
+          patterns: ["wohngebäudeversicherung", "versicherungsschein", "police", "policy"]
+          priority: 9
+          steuer_relevant: true
+        hausrat_police:
+          patterns: ["hausratversicherung", "versicherungsschein", "police", "policy"]
+          priority: 9
+          steuer_relevant: true
+        rechnung:
+          patterns: ["beitrag", "prämie", "rechnung", "abbuchung"]
+          priority: 10
+          steuer_relevant: true
+
+  johnny:
+    banking:
+      doc_types:
+        kontoauszug:
+          patterns: ["kontoauszug", "umsatzübersicht", "kontoumsatz", "kontostand", "girokonto"]
+          priority: 10
+          steuer_relevant: true
+        depotauszug:
+          patterns: ["depotauszug", "wertpapierbestand", "depotübersicht", "fondsbestand", "bestand"]
+          priority: 10
+          steuer_relevant: true
+        banking_rechnung:
+          patterns: ["trade republic", "consorsbank", "c24 bank", "paypal", "dkb", "depot", "wertpapier", "etf", "fonds"]
+          priority: 12
+          steuer_relevant: true
+        freistellungsauftrag:
+          patterns: ["freistellungsauftrag", "freibetrag", "sparerpauschbetrag"]
+          priority: 8
+          steuer_relevant: true
+        zahlungsavis:
+          patterns: ["zahlungsavis", "payment advice", "remittance"]
+          priority: 7
+          steuer_relevant: false
+        ueberweisung:
+          patterns: ["überweisung", "sepa", "transfer confirmation", "überweisungsbestätigung"]
+          priority: 6
+          steuer_relevant: false
+    rechnung:
+      doc_types:
+        banking_rechnung:
+          patterns: ["trade republic", "consorsbank", "c24 bank", "paypal", "dkb", "depot", "wertpapier", "etf", "fonds", "verrechnungskonto"]
+          priority: 12
+          steuer_relevant: true
+        rechnung_allgemein:
+          patterns: ["rechnung", "rg.", "rechnungsstellung", "kaufbeleg", "zahlungsaufforderung", "forderung"]
+          priority: 8
+          steuer_relevant: true
+    rente:
+      doc_types:
+        auskunft:
+          patterns: ["renteninformation", "rentenauskunft", "versicherungsverlauf", "mitteilung"]
+          priority: 9
+          steuer_relevant: true
+        kontoauszug:
+          patterns: ["rentenversicherung kontoauszug", "beitragskonto", "jahresmeldung"]
+          priority: 9
+          steuer_relevant: true
+        information:
+          patterns: ["hinweise", "merkblatt", "information", "übersicht"]
+          priority: 6
+          steuer_relevant: false
+    steuer:
+      doc_types:
+        bescheid:
+          patterns: ["einkommensteuerbescheid", "steuerbescheid", "festsetzung", "veranlagung"]
+          priority: 10
+          steuer_relevant: true
+        erklaerung:
+          patterns: ["steuererklärung", "tax return", "elster bestätigung"]
+          priority: 10
+          steuer_relevant: true
+        lohnsteuer:
+          patterns: ["lohnsteuerbescheinigung", "elektronische lohnsteuerbescheinigung"]
+          priority: 10
+          steuer_relevant: true
+        software:
+          patterns: ["lizenz", "rechnung software", "elster", "steuersoftware"]
+          priority: 8
+          steuer_relevant: true
+        zeitnachweis:
+          patterns: ["zeitnachweis", "tätigkeitsnachweis", "stundenaufstellung"]
+          priority: 8
+          steuer_relevant: true
+    versicherung:
+      doc_types:
+        bu_police:
+          patterns: ["berufsunfähigkeitsversicherung", "versicherungsschein", "police"]
+          priority: 9
+          steuer_relevant: true
+        kranken_police:
+          patterns: ["private krankenversicherung", "zusatzversicherung", "police", "tarif"]
+          priority: 9
+          steuer_relevant: true
+        sozial_nachweis:
+          patterns: ["sozialversicherungsausweis", "mitgliedsbescheinigung", "beitrittsbescheinigung"]
+          priority: 8
+          steuer_relevant: true
+        rechnung:
+          patterns: ["beitrag", "prämie", "rechnung"]
+          priority: 10
+          steuer_relevant: true
+
+  fam:
+    familie:
+      doc_types:
+        antrag:
+          patterns: ["antrag", "application", "beantragung"]
+          priority: 8
+          steuer_relevant: false
+        bescheinigung:
+          patterns: ["bescheinigung", "bestätigung", "nachweis"]
+          priority: 7
+          steuer_relevant: false
+        urkunde:
+          patterns: ["geburtsurkunde", "urkunde", "stammbuch"]
+          priority: 9
+          steuer_relevant: false
+        ausweis:
+          patterns: ["personalausweis", "reisepass", "id card", "pass"]
+          priority: 7
+          steuer_relevant: false
+    gesundheit:
+      doc_types:
+        arztbrief:
+          patterns: ["arztbrief", "befund", "bericht", "entlassbrief", "medical report"]
+          priority: 8
+          steuer_relevant: false
+        rezept:
+          patterns: ["rezept", "prescription", "verordnung"]
+          priority: 7
+          steuer_relevant: false
+        ueberweisung:
+          patterns: ["überweisung", "referral", "einweisung"]
+          priority: 6
+          steuer_relevant: false
+        krankmeldung:
+          patterns: ["arbeitsunfähigkeitsbescheinigung", "au", "sick note"]
+          priority: 8
+          steuer_relevant: false
+        kinderarzt:
+          patterns: ["u-untersuchung", "u-heft", "impfpass", "attest", "pediatric"]
+          priority: 7
+          steuer_relevant: false
+    bildung:
+      doc_types:
+        zeugnis:
+          patterns: ["zeugnis", "report card", "school report", "certificate"]
+          priority: 9
+          steuer_relevant: false
+        elternbrief:
+          patterns: ["elternbrief", "parents letter", "school letter"]
+          priority: 6
+          steuer_relevant: false
+        bescheinigung:
+          patterns: ["schulbescheinigung", "schulanmeldung", "kita-bescheinigung", "kindergarten"]
+          priority: 8
+          steuer_relevant: false
+        stundenplan:
+          patterns: ["stundenplan", "schedule", "stundenübersicht"]
+          priority: 5
+          steuer_relevant: false
+    kfz:
+      doc_types:
+        fahrzeugschein:
+          patterns: ["zulassungsbescheinigung teil i", "fahrzeugschein"]
+          priority: 9
+          steuer_relevant: false
+        versicherung:
+          patterns: ["kfz-versicherung", "versicherungsschein", "police"]
+          priority: 9
+          steuer_relevant: true
+        steuer:
+          patterns: ["kfz-steuer", "steuerbescheid", "bundeskasse"]
+          priority: 9
+          steuer_relevant: true
+        kredit:
+          patterns: ["kreditvertrag", "ratenplan", "finanzierung"]
+          priority: 8
+          steuer_relevant: false
+        verkauf:
+          patterns: ["kaufvertrag", "veräußerung", "abmeldebestätigung"]
+          priority: 8
+          steuer_relevant: false
+
+  allgemein:
+    bestellung:
+      doc_types:
+        bestaetigung:
+          patterns: ["bestellbestätigung", "order confirmation", "confirmation", "auftragsbestätigung"]
+          priority: 7
+          steuer_relevant: false
+        bestellung:
+          patterns: ["bestellung", "order", "purchase", "auftrag"]
+          priority: 6
+          steuer_relevant: false
+        lieferschein:
+          patterns: ["lieferschein", "delivery note", "packing slip"]
+          priority: 6
+          steuer_relevant: false
+        retoure:
+          patterns: ["retoure", "return", "rma", "rücksendeetikett"]
+          priority: 6
+          steuer_relevant: false
+    recht:
+      doc_types:
+        vertrag:
+          patterns: ["vertrag", "agreement", "contract", "vereinbarung", "agb", "conditions"]
+          priority: 8
+          steuer_relevant: false
+        kuendigung:
+          patterns: ["kündigung", "termination", "kündigungsbestätigung", "beendigung"]
+          priority: 7
+          steuer_relevant: false
+        lizenz_permit:
+          patterns: ["lizenz", "genehmigung", "permit", "authorization"]
+          priority: 7
+          steuer_relevant: false
+        bescheid:
+          patterns: ["bescheid", "verfügung", "entscheidung", "notice"]
+          priority: 8
+          steuer_relevant: false
+    bestaetigung:
+      doc_types:
+        quittung:
+          patterns: ["quittung", "beleg", "receipt"]
+          priority: 8
+          steuer_relevant: true
+        bestaetigung:
+          patterns: ["bestätigung", "acknowledgement", "eingangsbestätigung"]
+          priority: 6
+          steuer_relevant: false
+    protokoll:
+      doc_types:
+        protokoll:
+          patterns: ["protokoll", "minutes", "meeting notes", "sitzungsprotokoll"]
+          priority: 6
+          steuer_relevant: false
+    rechnungskorrektur:
+      doc_types:
+        gutschrift:
+          patterns: ["gutschrift", "credit note", "storno", "rechnungskorrektur"]
+          priority: 9
+          steuer_relevant: true
